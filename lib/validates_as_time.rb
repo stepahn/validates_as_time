@@ -21,13 +21,14 @@ module ActiveRecord
         options = ValidatesAsTime.default_options.merge(attr_names.extract_options!)
 
         validates_each(attr_names, options) do |record, attr, value|
-          if record.instance_variable_defined?("@_#{attr}_invalid") && record.instance_variable_get("@_#{attr}_invalid")
+          if record.instance_variable_defined?("@_#{attr}_invalid") and 
+             record.instance_variable_get("@_#{attr}_invalid")
             record.errors.add(attr, options[:message])
           elsif value.nil?
             record.errors.add(attr, options[:blank])
-          elsif options[:minimum] && (value < options[:minimum])
+          elsif options[:minimum] and value < options[:minimum]
             record.errors.add(attr, options[:too_early] % options[:minimum].strftime(options[:format]))
-          elsif options[:maximum] && (value >= options[:maximum])
+          elsif options[:maximum] and value >= options[:maximum]
             record.errors.add(attr, options[:too_late] % options[:maximum].strftime(options[:format]))
           end
         end
