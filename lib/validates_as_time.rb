@@ -34,8 +34,8 @@ module ActiveRecord
 
         attr_names.each do |attr_name|
           define_method("#{attr_name}_string") do
-            if str = instance_variable_get("@_#{attr_name}_string")
-              return str
+            if instance_variable_defined?("@_#{attr_name}_string")
+              return instance_variable_get("@_#{attr_name}_string")
             end
 
             c = read_attribute(attr_name) || parser.parse(options[:default])
