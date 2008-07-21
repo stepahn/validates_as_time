@@ -47,7 +47,7 @@ module ActiveRecord
             end
           end
 
-          validates_each(attr_name, options) do |record, attr, value|
+          validates_each(attr_name, configuration) do |record, attr, value|
             if record.instance_variable_defined?("@_#{attr_name}_invalid") && record.instance_variable_get("@_#{attr_name}_invalid")
               record.errors.add(attr, configuration[:message])
               next
