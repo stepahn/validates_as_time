@@ -47,13 +47,13 @@ module ActiveRecord
             end
           end
 
-          validates_each attr_name do |record, attr, value|
+          validates_each(attr_name, options) do |record, attr, value|
             if record.instance_variable_defined?("@_#{attr_name}_invalid") && record.instance_variable_get("@_#{attr_name}_invalid")
               record.errors.add(attr, configuration[:message])
               next
             end
             if value.nil?
-              record.errors.add(attr, configuration[:blank]) unless configuration[:allow_nil]
+              record.errors.add(attr, configuration[:blank])
               next
             end
             if configuration[:minimum] && (value < configuration[:minimum])
