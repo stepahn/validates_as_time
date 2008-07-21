@@ -17,13 +17,26 @@ module ActiveRecord
 
       def validates_as_time(*attr_names)
         configuration = ValidatesAsTime.default_configuration.merge(attr_names.extract_options!)
+
+        validates_each(attr_names, configuration) do |record, attr, value|
+          if record.instance_variable_defined?("@_#{attr}_invalid") && record.instance_variable_get("@_#{attr}_invalid")
+            record.errors.add(attr, configuration[:message])
+          elsif value.nil?
+            record.errors.add(attr, configuration[:blank])
+          elsif configuration[:minimum] && (value < configuration[:minimum])
+            record.errors.add(attr, configuration[:too_early] % configuration[:minimum].strftime(configuration[:format]))
+          elsif configuration[:maximum] && (value >= configuration[:maximum])
+            record.errors.add(attr, configuration[:too_late] % configuration[:maximum].strftime(configuration[:format]))
+          end
+        end
+
         attr_names.each do |attr_name|
           define_method("#{attr_name}_string") do
             if str = instance_variable_get("@_#{attr_name}_string")
               return str
             end
 
-            c = send(attr_name) || (Object.const_defined?(:Chronic) ? Chronic.parse(configuration[:default]) : Time.parse(configuration[:default]))
+            c = read_attribute(attr_name) || (Object.const_defined?(:Chronic) ? Chronic.parse(configuration[:default]) : Time.parse(configuration[:default]))
             c.strftime(configuration[:format]) if c
           end
 
@@ -31,36 +44,15 @@ module ActiveRecord
             begin
               instance_variable_set("@_#{attr_name}_string", str)
 
-              if str.blank?
-                write_attribute(attr_name, nil)
+              if Object.const_defined?(:Chronic)
+                c = Chronic.parse(str)
+                raise ArgumentError if c.nil?
+                write_attribute(attr_name, c)
               else
-                if Object.const_defined?(:Chronic)
-                  c = Chronic.parse(str)
-                  raise ArgumentError if c.nil?
-                  write_attribute(attr_name, c)
-                else
-                  write_attribute(attr_name, Time.parse(str))
-                end
+                write_attribute(attr_name, Time.parse(str))
               end
             rescue ArgumentError
               instance_variable_set("@_#{attr_name}_invalid", true)
-            end
-          end
-
-          validates_each(attr_name, configuration) do |record, attr, value|
-            if record.instance_variable_defined?("@_#{attr_name}_invalid") && record.instance_variable_get("@_#{attr_name}_invalid")
-              record.errors.add(attr, configuration[:message])
-              next
-            end
-            if value.nil?
-              record.errors.add(attr, configuration[:blank])
-              next
-            end
-            if configuration[:minimum] && (value < configuration[:minimum])
-              record.errors.add(attr, configuration[:too_early] % configuration[:minimum].strftime(configuration[:format]))
-            end
-            if configuration[:maximum] && (value >= configuration[:maximum])
-              record.errors.add(attr, configuration[:too_late] % configuration[:maximum].strftime(configuration[:format]))
             end
           end
         end
