@@ -27,7 +27,7 @@ module ActiveRecord
 
             def #{attr_name}_string=(str)
               @_#{attr_name}_string = str
-              if str.nil?
+              if str.blank?
                 self.#{attr_name} = nil
               else
                 if Object.const_defined?(:Chronic)
