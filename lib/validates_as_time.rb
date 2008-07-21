@@ -46,7 +46,12 @@ module ActiveRecord
 
               if Object.const_defined?(:Chronic)
                 c = Chronic.parse(str)
-                raise ArgumentError if c.nil?
+
+                if (c.nil? and not configuration[:allow_nil]) or
+                   (c.blank? and not configuration[:allow_blank])
+                  raise ArgumentError
+                end
+
                 write_attribute(attr_name, c)
               else
                 write_attribute(attr_name, Time.parse(str))
