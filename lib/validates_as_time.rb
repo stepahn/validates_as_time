@@ -19,7 +19,9 @@ module ActiveRecord
         configuration = ValidatesAsTime.default_configuration.merge(attr_names.extract_options!)
         attr_names.each do |attr_name|
           define_method("#{attr_name}_string") do
-            return str if str = instance_variable_get("@_#{attr_name}_string")
+            if str = instance_variable_get("@_#{attr_name}_string")
+              return str
+            end
 
             c = send(attr_name) || (Object.const_defined?(:Chronic) ? Chronic.parse(configuration[:default]) : Time.parse(configuration[:default]))
             c.strftime(configuration[:format]) if c
