@@ -61,6 +61,23 @@ class ValidatesAsTimeTest < Test::Unit::TestCase
                  "it should reflect a set time value via get string value"
   end
 
+  def test_set_blank
+    t = TestRecord.new
+    t.t0_string = ""
+    t.valid?
+    assert t.errors[:t0].nil?, "it should allow blank values by default"
+    
+    t.t1_string = ""
+    t.valid?
+    assert_equal "can't be blank", t.errors[:t1], "it should not allow blank values when custom allow_nil option is set to false"
+  end
+
+  def test_valid
+    t = TestRecord.new
+    assert !t.valid?, "it is invalid"
+    assert !t.valid?, "it should remain invalid"
+  end
+
   def test_invalid_format
     t = TestRecord.new(:t0_string => "2008-01-99 23:59")
     t.valid?

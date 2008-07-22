@@ -20,41 +20,59 @@ module ActiveRecord
 
         options = ValidatesAsTime.default_options.merge(attr_names.extract_options!)
 
-        validates_each(attr_names, options) do |record, attr, value|
-          if record.instance_variable_defined?("@_#{attr}_invalid") and 
-             record.instance_variable_get("@_#{attr}_invalid")
-            record.errors.add(attr, options[:message])
+        attrs = attr_names.collect { |a| [a, "#{a}_string"]}
+        attrs.flatten!
+        validates_each(attrs, options) do |record, attr_name, value|
+          attr_name = attr_name.to_s.sub(/_string$/, "")
+          next if record.errors[attr_name]
+          value = record.send("#{attr_name}")
+          if record.instance_variable_defined?("@_#{attr_name}_invalid") and
+             record.instance_variable_get("@_#{attr_name}_invalid")
+            record.errors.add(attr_name, options[:message])
           elsif value.nil?
-            record.errors.add(attr, options[:blank])
+            record.errors.add(attr_name, options[:blank]) unless options[:allow_nil]
           elsif options[:minimum] and value < options[:minimum]
-            record.errors.add(attr, options[:too_early] % options[:minimum].strftime(options[:format]))
+            record.errors.add(attr_name, options[:too_early] % options[:minimum].strftime(options[:format]))
           elsif options[:maximum] and value >= options[:maximum]
-            record.errors.add(attr, options[:too_late] % options[:maximum].strftime(options[:format]))
+            record.errors.add(attr_name, options[:too_late] % options[:maximum].strftime(options[:format]))
           end
         end
 
         attr_names.each do |attr_name|
-          define_method("#{attr_name}_string") do
-            if instance_variable_defined?("@_#{attr_name}_string")
-              return instance_variable_get("@_#{attr_name}_string")
-            end
+          define_method("#{attr_name}") do
+            read_attribute("#{attr_name}")
+          end
 
-            c = read_attribute(attr_name) || parser.parse(options[:default])
+          define_method("#{attr_name}=") do |time|
+            write_attribute("#{attr_name}", time)
+            write_attribute("#{attr_name}_string", nil)
+          end
+
+          define_method("#{attr_name}_string") do
+            value = read_attribute("#{attr_name}_string")
+            return value if value
+            c = send("#{attr_name}")
+            if c.nil?
+              if options[:default].is_a?(String)
+                c = parser.parse(options[:default])
+              else
+                c = options[:default]
+              end
+            end
             c.strftime(options[:format]) if c
           end
 
           define_method("#{attr_name}_string=") do |str|
             begin
-              instance_variable_set("@_#{attr_name}_string", str)
-
-              c = parser.parse(str)
-
-              if (c.nil? and not options[:allow_nil]) or
-                 (c.blank? and not options[:allow_blank])
-                raise ArgumentError
+              str = nil if str.blank?
+              unless str
+                send("#{attr_name}", nil)
+              else
+                write_attribute("#{attr_name}_string", str)
+                c = parser.parse(str)
+                raise ArgumentError if c.nil?
+                send("#{attr_name}=", c)
               end
-
-              write_attribute(attr_name, c)
             rescue ArgumentError
               instance_variable_set("@_#{attr_name}_invalid", true)
             end

@@ -75,7 +75,7 @@ or:
 
 You could override these options globally by modifying the following hash:
 
-  ValidatesAsTime.default_configuration
+  ValidatesAsTime.default_options
 
 
 == Localization
@@ -84,8 +84,8 @@ To localize the default messages, override:
 
   ActiveRecord::Errors.default_error_messages[:invalid]
   ActiveRecord::Errors.default_error_messages[:blank]
-  ValidatesAsTime.default_configuration[:too_early]
-  ValidatesAsTime.default_configuration[:too_late]
+  ValidatesAsTime.default_options[:too_early]
+  ValidatesAsTime.default_options[:too_late]
 
 The messages <tt>:too_early</tt> and <tt>:too_late</tt> can accept a placeholder %s which will be replaced with the given minimum resp. maximum value.
 
