@@ -6,7 +6,8 @@ class ValidatesAsTime
     :blank => ActiveRecord::Errors.default_error_messages[:blank],
     :too_early => "cannot be before %s",
     :too_late => "cannot be on or after %s",
-    :allow_nil => true
+    :allow_nil => true,
+    :preparser => nil
   }
   cattr_accessor :default_options
 end
@@ -54,7 +55,9 @@ module ActiveRecord
             c = send("#{attr_name}")
             if c.nil?
               if options[:default].is_a?(String)
-                c = parser.parse(options[:default])
+                str = options[:default])
+                str = self.send(options[:preparser], str) if options[:preparser]
+                c = parser.parse(str)
               else
                 c = options[:default]
               end
@@ -69,6 +72,7 @@ module ActiveRecord
                 send("#{attr_name}=", nil)
               else
                 write_attribute("#{attr_name}_string", str)
+                str = self.send(options[:preparser], str) if options[:preparser]
                 c = parser.parse(str)
                 raise ArgumentError if c.nil?
                 send("#{attr_name}=", c)
