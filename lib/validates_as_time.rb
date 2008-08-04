@@ -66,7 +66,7 @@ module ActiveRecord
             begin
               str = nil if str.blank?
               unless str
-                send("#{attr_name}", nil)
+                send("#{attr_name}=", nil)
               else
                 write_attribute("#{attr_name}_string", str)
                 c = parser.parse(str)
