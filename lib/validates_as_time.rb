@@ -56,7 +56,13 @@ module ActiveRecord
             if c.nil?
               if options[:default].is_a?(String)
                 str = options[:default]
-                str = self.send(options[:preparser], str) if options[:preparser]
+                if options[:preparser]
+                  if options[:preparser].is_a?(Symbol)
+                    str = self.send(options[:preparser], str)
+                  elsif options[:preparser].respond_to?(:call)
+                    str = options[:preparser].call(str)
+                  end
+                end
                 c = parser.parse(str)
               else
                 c = options[:default]
@@ -72,7 +78,13 @@ module ActiveRecord
                 send("#{attr_name}=", nil)
               else
                 write_attribute("#{attr_name}_string", str)
-                str = self.send(options[:preparser], str) if options[:preparser]
+                if options[:preparser]
+                  if options[:preparser].is_a?(Symbol)
+                    str = self.send(options[:preparser], str)
+                  elsif options[:preparser].respond_to?(:call)
+                    str = options[:preparser].call(str)
+                  end
+                end
                 c = parser.parse(str)
                 raise ArgumentError if c.nil?
                 send("#{attr_name}=", c)
