@@ -55,7 +55,7 @@ module ActiveRecord
             c = send("#{attr_name}")
             if c.nil?
               if options[:default].is_a?(String)
-                str = options[:default])
+                str = options[:default]
                 str = self.send(options[:preparser], str) if options[:preparser]
                 c = parser.parse(str)
               else
