@@ -49,6 +49,10 @@ module ActiveRecord
             write_attribute("#{attr_name}_string", nil)
           end
 
+          define_method("#{attr_name}_string_before_type_cast") do
+            send("#{attr_name}_string")
+          end
+
           define_method("#{attr_name}_string") do
             value = read_attribute("#{attr_name}_string")
             return value if value
