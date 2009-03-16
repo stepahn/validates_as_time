@@ -2,8 +2,8 @@ class ValidatesAsTime
   @@default_options = {
     :default => Time.now,
     :format => "%Y-%m-%d %H:%M",
-    :message => ActiveRecord::Errors.default_error_messages[:invalid],
-    :blank => ActiveRecord::Errors.default_error_messages[:blank],
+    :message => (I18n.translate :invalid, :scope => "activerecord.errors.messages"),
+    :blank => (I18n.translate :blank, :scope => "activerecord.errors.messages"),
     :too_early => "cannot be before %s",
     :too_late => "cannot be on or after %s",
     :allow_nil => true,
