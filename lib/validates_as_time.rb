@@ -21,6 +21,10 @@ module ActiveRecord
 
         options = ValidatesAsTime.default_options.merge(attr_names.extract_options!)
 
+        if options[:parser]
+          parser = options[:parser]
+        end
+
         attrs = attr_names.collect { |a| [a, "#{a}_string"]}
         attrs.flatten!
         validates_each(attrs, options) do |record, attr_name, value|
